@@ -213,8 +213,6 @@ function handleEditClicked() {
     let id = getItemIdFromElement(e.currentTarget);
 
     toggleEditBar(id);
-    console.log(store.currentEditIndex);
-    console.log(id);
     render();
 
     $('.js-edit-input').focus();
