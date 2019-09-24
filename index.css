@@ -51,3 +51,8 @@ button:hover {
 .shopping-item__checked {
   text-decoration: line-through;
 }
+
+.js-edit-input {
+  display: inline-block;
+  height: 34px;
+}

@@ -1,20 +1,18 @@
+'use strict';
 const store = {
   items: [
-    { id: cuid(), name: 'apples', checked: false },
-    { id: cuid(), name: 'oranges', checked: false },
-    { id: cuid(), name: 'milk', checked: true },
-    { id: cuid(), name: 'bread', checked: false }
+    { id: cuid(), name: 'apples', checked: false, editBoolean: false },
+    { id: cuid(), name: 'oranges', checked: false, editBoolean: false },
+    { id: cuid(), name: 'milk', checked: true, editBoolean: false },
+    { id: cuid(), name: 'bread', checked: false, editBoolean: false }
   ],
-  hideCheckedItems: false
+  hideCheckedItems: false,
+  currentEditIndex: null
 };
 
 const generateItemElement = function (item) {
-  let itemTitle = `<span class='shopping-item shopping-item__checked'>${item.name}</span>`;
-  if (!item.checked) {
-    itemTitle = `
-     <span class='shopping-item'>${item.name}</span>
-    `;
-  }
+  
+  let itemTitle = getItemTitleHtml(item);
 
   return `
     <li class='js-item-element' data-item-id='${item.id}'>
@@ -26,9 +24,44 @@ const generateItemElement = function (item) {
         <button class='shopping-item-delete js-item-delete'>
           <span class='button-label'>delete</span>
         </button>
+        <button class='shopping-item-edit js-item-edit'>
+          <span class='button-label'>edit</span>
+        </button>
       </div>
     </li>`;
 };
+
+function getItemTitleHtml(item) {
+  let itemTitle;
+
+  if(item.editBoolean) {
+    itemTitle = `
+    <form id = 'js-edit-form'>
+      <input type= 'text' placeholder = '${item.name}' class='shopping-item shopping-item__checked js-edit-input'>
+      <button class='shopping-edit-submit js-edit-submit'>
+          <span class='button-label'>submit</span>
+      </button>
+    </form>`;
+    if (!item.checked) {
+      itemTitle = `
+      <form id = 'js-edit-form'>
+        <input type= 'text' placeholder = '${item.name}' class='shopping-item js-edit-input'>
+        <button class='shopping-edit-submit js-edit-submit'>
+          <span class='button-label'>submit</span>
+        </button>
+      </form>`;
+    }
+  } else {
+
+    itemTitle = `<span class='shopping-item shopping-item__checked'>${item.name}</span>`;
+    if (!item.checked) {
+      itemTitle = `
+      <span class='shopping-item'>${item.name}</span>
+      `;
+    }
+  }
+  return itemTitle;
+}
 
 const generateShoppingItemsString = function (shoppingList) {
   const items = shoppingList.map((item) => generateItemElement(item));
@@ -145,6 +178,74 @@ const handleToggleFilterClick = function () {
   });
 };
 
+
+
+
+
+
+
+
+
+function changeName(id, newName) {
+  let itemIndex = store.items.findIndex(item => item.id === id);
+
+  store.items[itemIndex].name = newName;
+  store.items[itemIndex].editBoolean = false;
+  store.currentEditIndex = null;
+}
+
+function toggleEditBar(id) {
+  //when edit clicked needs to change currenteditindex editboolean to false and selected editboolean to true and currentEditIndex to new item
+  //editboolean true = the span class to an input type text with item.name as default text.
+  //once submitted needs to toggle edit boolean and change item.name and resetcurrenteditindex to null
+  let itemIndex = store.items.findIndex(item => item.id === id);
+  if(store.currentEditIndex !== null) {
+    store.items[store.currentEditIndex].editBoolean = false;
+  }
+  store.currentEditIndex = itemIndex;
+  store.items[itemIndex].editBoolean = true;
+
+}
+
+
+function handleEditClicked() {
+  $('.js-shopping-list').on('click', '.js-item-edit', e => {
+    let id = getItemIdFromElement(e.currentTarget);
+
+    toggleEditBar(id);
+    console.log(store.currentEditIndex);
+    console.log(id);
+    render();
+
+    $('.js-edit-input').focus();
+  });
+}
+
+function handleSubmitEditForm() {
+  $('.js-shopping-list').on('submit', '#js-edit-form', e => {
+    e.preventDefault();
+    let id = getItemIdFromElement(e.currentTarget);
+    let newName = $(e.currentTarget).find('.js-edit-input').val();
+
+
+    changeName(id, newName);
+    render();
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * This function will be our callback when the
  * page loads. It is responsible for initially 
@@ -160,6 +261,8 @@ const handleShoppingList = function () {
   handleItemCheckClicked();
   handleDeleteItemClicked();
   handleToggleFilterClick();
+  handleEditClicked();
+  handleSubmitEditForm();
 };
 
 // when the page loads, call `handleShoppingList`
